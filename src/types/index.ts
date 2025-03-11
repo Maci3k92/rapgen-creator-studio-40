@@ -8,6 +8,9 @@ export interface Project {
   lyrics: string;
   date: string;
   beatUrl?: string;
+  vocalUrl?: string;
+  mixedTrackUrl?: string;
+  beatDuration?: number;
 }
 
 export interface Preset {

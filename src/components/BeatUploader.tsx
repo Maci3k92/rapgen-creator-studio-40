@@ -6,9 +6,10 @@ import { Upload, AudioWaveform } from "lucide-react";
 import { toast } from "sonner";
 
 const BeatUploader: React.FC = () => {
-  const { setCurrentBeat, setCurrentBeatUrl, setCurrentBpm } = useStudio();
+  const { setCurrentBeat, setCurrentBeatUrl, setCurrentBpm, setCurrentBeatDuration } = useStudio();
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -28,6 +29,19 @@ const BeatUploader: React.FC = () => {
       // Read file as ArrayBuffer for potential processing
       const arrayBuffer = await file.arrayBuffer();
       setCurrentBeat(arrayBuffer);
+
+      // Detect beat duration
+      const audio = audioRef.current || new Audio();
+      audio.src = objectUrl;
+      
+      // Wait for metadata to load to get duration
+      await new Promise((resolve) => {
+        audio.onloadedmetadata = () => {
+          const duration = Math.round(audio.duration);
+          setCurrentBeatDuration(duration);
+          resolve(duration);
+        };
+      });
 
       // Simulate BPM detection
       const detectedBpm = Math.floor(Math.random() * (160 - 80) + 80);
@@ -88,6 +102,8 @@ const BeatUploader: React.FC = () => {
         <Upload className="w-4 h-4 mr-2" />
         Select Beat
       </Button>
+
+      <audio ref={audioRef} className="hidden" />
     </div>
   );
 };
