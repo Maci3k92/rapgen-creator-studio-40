@@ -2,17 +2,38 @@
 import React, { useState } from "react";
 import { useStudio } from "@/context/StudioContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { 
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown, ChevronUp, Music, Mic, Share2, Clock } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 const ProjectHistory: React.FC = () => {
-  const { projects } = useStudio();
+  const { projects, generatingVocals, generatingMix, generateVocalTrack, mixTracks } = useStudio();
+  const [expandedProject, setExpandedProject] = useState<string | null>(null);
+
+  const toggleProject = (id: string) => {
+    setExpandedProject(prev => (prev === id ? null : id));
+  };
+
+  const handleGenerateVocals = (projectId: string, lyrics: string) => {
+    generateVocalTrack(projectId, lyrics);
+  };
+
+  const handleMixTracks = (projectId: string) => {
+    mixTracks(projectId);
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+    } catch (e) {
+      return "Unknown date";
+    }
+  };
 
   if (projects.length === 0) {
     return (
@@ -20,10 +41,9 @@ const ProjectHistory: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-lg">Project History</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-6">
-            No projects yet. Create your first track!
-          </p>
+        <CardContent className="text-center py-8 text-muted-foreground">
+          <Clock className="mx-auto h-12 w-12 mb-4 opacity-50" />
+          <p>No projects yet. Generate your first track!</p>
         </CardContent>
       </Card>
     );
@@ -32,49 +52,120 @@ const ProjectHistory: React.FC = () => {
   return (
     <Card className="bg-studio-gray border-studio-gray">
       <CardHeader>
-        <CardTitle className="text-lg">Project History</CardTitle>
+        <CardTitle className="text-lg">Project History ({projects.length})</CardTitle>
       </CardHeader>
-      <CardContent className="max-h-[400px] overflow-y-auto pr-2">
-        <Accordion type="multiple" className="space-y-2">
-          {projects.map((project) => (
-            <AccordionItem
-              key={project.id}
-              value={project.id}
-              className="border border-studio-gray bg-studio-dark/70 rounded-md overflow-hidden"
+      <CardContent className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+        {projects.map((project) => (
+          <Card key={project.id} className="bg-studio-dark border-studio-gray overflow-hidden">
+            <Collapsible
+              open={expandedProject === project.id}
+              onOpenChange={() => toggleProject(project.id)}
+              className="w-full"
             >
-              <AccordionTrigger className="px-4 py-3 hover:bg-studio-dark/90 [&[data-state=open]]:bg-studio-dark">
-                <div className="flex flex-col items-start text-left">
-                  <div className="font-medium">{project.title}</div>
-                  <div className="text-xs text-muted-foreground flex items-center space-x-2 mt-1">
-                    <span>{format(new Date(project.date), "MMM d, yyyy h:mm a")}</span>
-                    <Badge variant="outline" className="border-studio-purple text-studio-purple/90 text-xs">
-                      {project.style}
-                    </Badge>
-                    <span>BPM: {project.bpm}</span>
+              <CollapsibleTrigger asChild>
+                <div className="p-4 cursor-pointer flex items-center justify-between hover:bg-black/20">
+                  <div>
+                    <h3 className="font-medium text-foreground">{project.title}</h3>
+                    <div className="text-sm text-muted-foreground flex flex-wrap gap-2 mt-1">
+                      <span className="bg-studio-purple/20 rounded-full px-2 py-0.5">{project.style}</span>
+                      <span>{project.bpm} BPM</span>
+                      <span>{project.length}s</span>
+                      <span>{formatDate(project.date)}</span>
+                    </div>
                   </div>
+                  {expandedProject === project.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-4 pb-4 pt-2">
-                <div className="space-y-3">
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent className="px-4 pb-4">
+                <div className="space-y-4">
+                  <div className="border border-studio-gray rounded-md p-3 bg-black/20">
+                    <h4 className="text-sm font-medium mb-2">Lyrics</h4>
+                    <pre className="text-xs whitespace-pre-wrap text-muted-foreground">{project.lyrics}</pre>
+                  </div>
+                  
                   {project.beatUrl && (
-                    <div className="mb-2">
-                      <audio 
-                        src={project.beatUrl} 
-                        controls 
-                        className="w-full h-8 [&::-webkit-media-controls-panel]:bg-studio-dark [&::-webkit-media-controls-play-button]:text-studio-purple"
-                      />
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium">Beat Track</h4>
+                      <audio controls className="w-full h-8" src={project.beatUrl}></audio>
                     </div>
                   )}
-                  <div className="bg-studio-darkblue/30 p-3 rounded-md overflow-x-auto">
-                    <pre className="text-sm whitespace-pre-wrap font-mono text-muted-foreground">
-                      {project.lyrics}
-                    </pre>
+                  
+                  {project.vocalUrl && (
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium">Vocal Track</h4>
+                      <audio controls className="w-full h-8" src={project.vocalUrl}></audio>
+                    </div>
+                  )}
+                  
+                  {project.mixedTrackUrl && (
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium">Mixed Track</h4>
+                      <audio controls className="w-full h-8" src={project.mixedTrackUrl}></audio>
+                    </div>
+                  )}
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {!project.vocalUrl && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="border-studio-purple text-studio-purple hover:bg-studio-purple/10"
+                        onClick={() => handleGenerateVocals(project.id, project.lyrics)}
+                        disabled={generatingVocals}
+                      >
+                        {generatingVocals ? (
+                          <>
+                            <div className="w-3 h-3 border-2 border-studio-purple/30 border-t-studio-purple rounded-full animate-spin mr-2" />
+                            Generating Vocals...
+                          </>
+                        ) : (
+                          <>
+                            <Mic size={14} className="mr-1" />
+                            Generate Vocals
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    
+                    {project.vocalUrl && !project.mixedTrackUrl && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="border-studio-purple text-studio-purple hover:bg-studio-purple/10"
+                        onClick={() => handleMixTracks(project.id)}
+                        disabled={generatingMix}
+                      >
+                        {generatingMix ? (
+                          <>
+                            <div className="w-3 h-3 border-2 border-studio-purple/30 border-t-studio-purple rounded-full animate-spin mr-2" />
+                            Mixing...
+                          </>
+                        ) : (
+                          <>
+                            <Music size={14} className="mr-1" />
+                            Mix Track
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    
+                    {project.mixedTrackUrl && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="border-studio-purple text-studio-purple hover:bg-studio-purple/10"
+                      >
+                        <Share2 size={14} className="mr-1" />
+                        Share
+                      </Button>
+                    )}
                   </div>
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
+        ))}
       </CardContent>
     </Card>
   );

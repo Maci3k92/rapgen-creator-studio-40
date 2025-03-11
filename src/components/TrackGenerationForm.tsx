@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useStudio } from "@/context/StudioContext";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ const TrackGenerationForm: React.FC = () => {
   const { 
     currentBeat, 
     currentBpm, 
+    currentBeatDuration,
     presetStyle,
     loading,
     generateTrack
@@ -25,6 +26,13 @@ const TrackGenerationForm: React.FC = () => {
   const [title, setTitle] = useState("");
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [trackLength, setTrackLength] = useState(180);
+  
+  // Update track length when beat duration is detected
+  useEffect(() => {
+    if (currentBeatDuration) {
+      setTrackLength(currentBeatDuration);
+    }
+  }, [currentBeatDuration]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +77,14 @@ const TrackGenerationForm: React.FC = () => {
             <CollapsibleContent className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <Label htmlFor="length">Track Length</Label>
+                  <Label htmlFor="length">
+                    Track Length
+                    {currentBeatDuration && (
+                      <span className="ml-2 text-xs text-studio-purple">
+                        (Detected from beat)
+                      </span>
+                    )}
+                  </Label>
                   <span className="text-sm font-medium text-muted-foreground">{trackLength} seconds</span>
                 </div>
                 <Slider
