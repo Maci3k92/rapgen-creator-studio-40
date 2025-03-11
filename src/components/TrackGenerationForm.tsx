@@ -12,6 +12,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Settings, AudioWaveform } from "lucide-react";
+import VocalLibrary from "./VocalLibrary";
 
 const TrackGenerationForm: React.FC = () => {
   const { 
@@ -25,6 +26,7 @@ const TrackGenerationForm: React.FC = () => {
   
   const [title, setTitle] = useState("");
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const [isVocalLibraryOpen, setIsVocalLibraryOpen] = useState(false);
   const [trackLength, setTrackLength] = useState(180);
   
   // Update track length when beat duration is detected
@@ -36,7 +38,7 @@ const TrackGenerationForm: React.FC = () => {
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    generateTrack(title, presetStyle, currentBpm, trackLength);
+    generateTrack(title, presetStyle === "all" ? "Rap" : presetStyle, currentBpm, trackLength);
   };
   
   return (
@@ -54,6 +56,30 @@ const TrackGenerationForm: React.FC = () => {
               className="bg-studio-dark border-studio-gray"
             />
           </div>
+          
+          <Collapsible 
+            open={isVocalLibraryOpen} 
+            onOpenChange={setIsVocalLibraryOpen} 
+            className="space-y-4"
+          >
+            <CollapsibleTrigger asChild>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                className="flex items-center w-full justify-between px-0 text-muted-foreground hover:text-foreground hover:bg-transparent"
+              >
+                <div className="flex items-center">
+                  <AudioWaveform size={16} className="mr-2" />
+                  <span>Vocal Library</span>
+                </div>
+                {isVocalLibraryOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </Button>
+            </CollapsibleTrigger>
+            
+            <CollapsibleContent className="space-y-4">
+              <VocalLibrary />
+            </CollapsibleContent>
+          </Collapsible>
           
           <Collapsible 
             open={isAdvancedOpen} 

@@ -11,12 +11,22 @@ export interface Project {
   vocalUrl?: string;
   mixedTrackUrl?: string;
   beatDuration?: number;
+  vocalPresetId?: string;
 }
 
 export interface Preset {
   name: string;
   bpm: number;
   style: "Rap" | "Trap";
+}
+
+export interface VocalPreset {
+  id: string;
+  name: string;
+  gender: "male" | "female" | "neutral";
+  pitch: "deep" | "medium" | "high";
+  style: "Rap" | "Trap";
+  effects?: "light" | "medium" | "heavy";
 }
 
 // Adding these presets to match your Streamlit implementation
