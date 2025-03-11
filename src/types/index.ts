@@ -15,3 +15,10 @@ export interface Preset {
   bpm: number;
   style: "Rap" | "Trap";
 }
+
+// Adding these presets to match your Streamlit implementation
+export const DEFAULT_PRESETS: Preset[] = [
+  { name: "Classic Rap", bpm: 90, style: "Rap" },
+  { name: "Modern Trap", bpm: 140, style: "Trap" },
+  { name: "Boom Bap", bpm: 95, style: "Rap" }
+];
